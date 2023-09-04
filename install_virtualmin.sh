@@ -17,6 +17,9 @@ while true; do
     fi
 done
 
+# Prompt for email address input
+read -p "Enter the email address for notifications: " email_address
+
 # Change the hostname
 echo "$server_hostname" | sudo tee /etc/hostname
 sudo hostnamectl set-hostname "$server_hostname"
@@ -26,17 +29,16 @@ wget https://software.virtualmin.com/gpl/scripts/virtualmin-install.sh
 sudo sh virtualmin-install.sh -y
 
 # Add PHP repository and install packages
-apt-get -y install apt-transport-https lsb-release ca-certificates curl && curl -sSL -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/sury-debian-php-$(lsb_release -sc).list' && apt-get update
+apt-get -y install apt-transport-https lsb-release ca-certificates curl
+curl -sSL -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/sury-debian-php-$(lsb_release -sc).list
+apt-get update
 
+# Install PHP versions
 sudo apt-get update -y
-sudo apt-get install php8.2-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php8.1-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php8.0-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php7.4-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php7.3-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php7.2-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php7.1-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
-sudo apt-get install php5.6-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
+for version in 8.2 8.1 8.0 7.4 7.3 7.2 7.1 5.6; do
+    sudo apt-get install php$version-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
+done
 
 # Change the root password
 echo -e "$password\n$password" | sudo passwd root
@@ -48,3 +50,6 @@ server_ip=$(curl -s http://api.ipify.org)
 echo -e "[SUCCESS] Installation Complete!\n[SUCCESS] If there were no errors above, Virtualmin should be ready"
 echo -e "[SUCCESS] to configure at https://$server_hostname:10000 (or https://$server_ip:10000)."
 echo -e "[SUCCESS] You may receive a security warning in your browser on your first visit."
+
+# Send completion email
+echo "Installation was successful!" | mail -s "Installation Complete" -aFrom:system@$server_hostname $email_address
