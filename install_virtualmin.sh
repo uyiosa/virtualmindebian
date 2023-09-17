@@ -39,6 +39,8 @@ sudo apt-get update -y
 for version in 8.2 8.1 8.0 7.4 7.3 7.2 7.1 5.6; do
     sudo apt-get install php$version-{cgi,cli,fpm,pdo,gd,mbstring,mysqlnd,opcache,curl,xml,zip} -y
 done
+# Install Mail Client
+sudo apt-get install mailutils -y
 
 # Change the root password
 echo -e "$password\n$password" | sudo passwd root
